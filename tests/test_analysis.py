@@ -6,24 +6,60 @@ Write at least 3 tests:
 3. test_statistical_test_returns_pvalue — run_statistical_tests returns results with p-values
 """
 import pytest
+import pandas as pd
+from analysis import connect_db, extract_data, compute_kpis, run_statistical_tests
 
 
 def test_extraction_returns_dataframes():
     """Connect to the database, extract data, and verify the result is a dict of DataFrames."""
-    # TODO: Call connect_db and extract_data, then assert the result is a dict
-    #       with DataFrame values for each expected table
-    pass
+    engine = connect_db()
+    data = extract_data(engine)
+
+    assert isinstance(data, dict)
+
+    expected_tables = ["customers", "products", "orders", "order_items"]
+
+    for table in expected_tables:
+        assert table in data
+        assert isinstance(data[table], pd.DataFrame)
+        assert not data[table].empty
 
 
 def test_kpi_computation_returns_expected_keys():
     """Compute KPIs and verify the result contains all expected KPI names."""
-    # TODO: Extract data, call compute_kpis, then assert the returned dict
-    #       contains the keys matching your 5 KPI names
-    pass
+    engine = connect_db()
+    data = extract_data(engine)
+    kpis = compute_kpis(data)
+
+    assert isinstance(kpis, dict)
+
+    expected_kpis = [
+        "monthly_revenue",
+        "weekly_orders",
+        "revenue_by_city",
+        "aov_by_category",
+        "customer_purchase_frequency"
+    ]
+
+    for kpi in expected_kpis:
+        assert kpi in kpis
 
 
 def test_statistical_test_returns_pvalue():
     """Run statistical tests and verify results include p-values."""
-    # TODO: Extract data, call run_statistical_tests, then assert at least
-    #       one result contains a numeric p-value between 0 and 1
-    pass
+    engine = connect_db()
+    data = extract_data(engine)
+    stats_results = run_statistical_tests(data)
+
+    assert isinstance(stats_results, dict)
+
+  
+    found_pvalue = False
+
+    for test in stats_results.values():
+        if "p_value" in test:
+            p = test["p_value"]
+            assert 0 <= p <= 1
+            found_pvalue = True
+
+    assert found_pvalue
